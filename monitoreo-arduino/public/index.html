@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo Mini-RAID 1 Embebido</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <h1>Mini-RAID 1 <span>Embedded System</span></h1>
+            <p>Sistema de Adquisición de Datos Redundante y Tolerante a Fallos (FAT32 / SPI)</p>
+        </div>
+    </header>
+
+    <!-- Banner Principal de Estado del RAID -->
+    <div id="raidBanner" class="raid-banner">
+        <div class="raid-title">Estado Global del Arreglo RAID 1</div>
+        <div id="raidStatus" class="raid-status">INICIALIZANDO...</div>
+    </div>
+
+    <!-- Grilla de Tarjetas de Información -->
+    <div class="grid-cards">
+        <div class="card">
+            <h3>Temperatura</h3>
+            <div id="temp" class="value temp-val">-- °C</div>
+        </div>
+        <div class="card">
+            <h3>Humedad</h3>
+            <div id="hum" class="value hum-val">-- %</div>
+        </div>
+        <div class="card">
+            <h3>Unidad SD-A (CS Pin 10)</h3>
+            <div id="sdA" class="status-badge status-fail">DESCONECTADA</div>
+        </div>
+        <div class="card">
+            <h3>Unidad SD-B (CS Pin 9)</h3>
+            <div id="sdB" class="status-badge status-fail">DESCONECTADA</div>
+        </div>
+        <div class="card">
+            <h3>RAM Libre (SRAM)</h3>
+            <div id="ram" class="value ram-val">-- B</div>
+        </div>
+    </div>
+
+    <!-- Layout Principal: Gráfico y Monitor Serial -->
+    <div class="main-layout">
+        <div class="chart-container">
+            <h2>Telemetría en Tiempo Real</h2>
+            <canvas id="realtimeChart"></canvas>
+        </div>
+
+        <div class="serial-container">
+            <div class="serial-header">
+                <h2>Monitor Serial (SPI / RAID Logs)</h2>
+                <button id="clearSerial">Limpiar</button>
+            </div>
+            <div id="serialTerminal" class="serial-terminal">
+                <p class="sys-msg">[SISTEMA] Esperando conexión WebSocket...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visor de Auditoría del Archivo datalog.csv (Excel) -->
+    <div class="excel-container">
+        <h2>Auditoría en Tiempo Real de Archivo CSV (datalog.csv en SD-A & SD-B)</h2>
+        <div class="table-wrapper">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th>Tiempo (ms)</th>
+                        <th>N° Secuencia (seq)</th>
+                        <th>Temperatura (°C)</th>
+                        <th>Humedad (%)</th>
+                        <th>Estado de Espejo RAID 1</th>
+                    </tr>
+                </thead>
+                <tbody id="excelTableBody">
+                    <tr>
+                        <td colspan="5" class="empty-msg">Esperando registros de escrituras en las tarjetas MicroSD...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

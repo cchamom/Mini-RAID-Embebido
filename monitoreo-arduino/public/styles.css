@@ -1,0 +1,230 @@
+:root {
+    --bg: #161715;
+    --panel: #1d1e1b;
+    --panel-2: #242520;
+    --line: #34352f;
+    --text: #dedacf;
+    --muted: #8d8a7e;
+    --accent: #d9a441;
+    --rust: #d3694a;
+    --teal: #78aaa0;
+    --olive: #b4ad62;
+    --ok: #86b26f;
+    --fail: #cf5a47;
+    --mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
+    --sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--sans); }
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: 28px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    line-height: 1.45;
+}
+
+/* Encabezado */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 26px;
+    border-bottom: 2px solid var(--text);
+    padding-bottom: 14px;
+}
+header h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+}
+header h1 span {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: normal;
+    margin-left: 10px;
+}
+header p { color: var(--muted); font-size: 0.9rem; margin-top: 5px; }
+
+/* Banner de RAID */
+.raid-banner {
+    background: var(--panel);
+    padding: 16px 22px;
+    border-radius: 2px;
+    text-align: left;
+    margin-bottom: 26px;
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    transition: border-color 0.25s ease;
+}
+.raid-title {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+}
+.raid-status {
+    font-family: var(--mono);
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-top: 0;
+}
+
+/* Grilla de métricas */
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0;
+    margin-bottom: 26px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+}
+.card {
+    background: transparent;
+    padding: 16px 18px 18px;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin: 0 -1px -1px 0;
+    text-align: left;
+}
+.card h3 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: normal;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+}
+.card .value {
+    font-family: var(--mono);
+    font-size: 1.9rem;
+    font-weight: 600;
+    letter-spacing: -1px;
+}
+.temp-val { color: var(--rust); }
+.hum-val { color: var(--teal); }
+.ram-val { color: var(--olive); }
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.8px;
+    margin-top: 4px;
+    background: transparent;
+    border: 1px solid currentColor;
+}
+.status-ok { color: var(--ok); background-color: rgba(134, 178, 111, 0.10); }
+.status-fail { color: var(--fail); background-color: rgba(207, 90, 71, 0.10); }
+
+/* Gráfica + monitor serial */
+.main-layout {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 22px;
+    margin-bottom: 26px;
+}
+@media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
+
+.chart-container, .serial-container, .excel-container {
+    background-color: var(--panel);
+    padding: 18px 20px 20px;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--text);
+}
+.chart-container h2, .serial-header h2, .excel-container h2 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 16px;
+}
+
+.serial-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
+.serial-header h2 { margin-bottom: 16px; }
+.serial-header button {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 4px 12px;
+    margin-bottom: 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    transition: color 0.15s, border-color 0.15s;
+}
+.serial-header button:hover { color: var(--accent); border-color: var(--accent); }
+
+.serial-terminal {
+    background: #0e0f0d;
+    color: #a9c79a;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    padding: 12px 14px;
+    border-radius: 2px;
+    height: 320px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+}
+.serial-terminal p { margin-bottom: 3px; line-height: 1.35; font-family: var(--mono); }
+.serial-terminal .sys-msg { color: var(--teal); }
+.serial-terminal .warn-msg { color: var(--accent); }
+.serial-terminal .err-msg { color: var(--fail); }
+
+/* Tabla de auditoría */
+.table-wrapper { overflow-x: auto; max-height: 280px; border: 1px solid var(--line); }
+.excel-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+.excel-table th {
+    background-color: var(--panel-2);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--text);
+    position: sticky;
+    top: 0;
+}
+.excel-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+}
+.excel-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
+.excel-table tbody tr:hover { background-color: var(--panel-2); }
+.empty-msg { text-align: center; color: var(--muted); font-style: italic; font-family: var(--sans); }
+.tag-ok { color: var(--ok); font-weight: bold; }
+.tag-deg { color: var(--accent); font-weight: bold; }
+
+/* Barra de scroll discreta */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line); }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }

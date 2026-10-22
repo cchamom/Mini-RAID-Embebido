@@ -1,127 +1,147 @@
-const ctx = document.getElementById('realtimeChart').getContext('2d');
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
-// Configuración de la gráfica de líneas
-const chart = new Chart(ctx, {
+const serialTerminal = document.getElementById('serialTerminal');
+const clearSerialBtn = document.getElementById('clearSerial');
+const raidStatusEl = document.getElementById('raidStatus');
+const raidBanner = document.getElementById('raidBanner');
+
+const tempEl = document.getElementById('temp');
+const humEl = document.getElementById('hum');
+const sdAEl = document.getElementById('sdA');
+const sdBEl = document.getElementById('sdB');
+const ramEl = document.getElementById('ram');
+
+const tableA = document.getElementById('tableA');
+const tableB = document.getElementById('tableB');
+
+let firstA = true;
+let firstB = true;
+
+const ctx = document.getElementById('realtimeChart').getContext('2d');
+const realtimeChart = new Chart(ctx, {
     type: 'line',
     data: {
         labels: [],
         datasets: [
-            { label: 'Temperatura (°C)', data: [], borderColor: '#f87171', backgroundColor: 'rgba(248, 113, 113, 0.1)', fill: true, tension: 0.3 },
-            { label: 'Humedad (%)', data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true, tension: 0.3 }
+            {
+                label: 'Temperatura (°C)',
+                borderColor: '#f85149',
+                backgroundColor: 'rgba(248, 81, 73, 0.05)',
+                data: [],
+                borderWidth: 2,
+                tension: 0.2,
+                fill: true,
+                yAxisID: 'y'
+            },
+            {
+                label: 'Humedad (%)',
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                data: [],
+                borderWidth: 2,
+                tension: 0.2,
+                fill: true,
+                yAxisID: 'y1'
+            }
         ]
     },
     options: {
         responsive: true,
-        scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: '#c9d1d9', font: { family: 'monospace', size: 11 } } }
         },
-        plugins: { legend: { labels: { color: '#f8fafc' } } }
+        scales: {
+            x: { ticks: { color: '#8b949e', font: { family: 'monospace', size: 10 } }, grid: { color: '#30363d' } },
+            y: { type: 'linear', position: 'left', ticks: { color: '#f85149', font: { family: 'monospace', size: 10 } }, grid: { color: '#30363d' } },
+            y1: { type: 'linear', position: 'right', ticks: { color: '#38bdf8', font: { family: 'monospace', size: 10 } }, grid: { drawOnChartArea: false } }
+        }
     }
 });
 
-const ws = new WebSocket(`ws://${location.host}`);
-const terminal = document.getElementById('serialTerminal');
-const excelTableBody = document.getElementById('excelTableBody');
-const clearSerialBtn = document.getElementById('clearSerial');
-
-let isFirstRow = true;
-
-clearSerialBtn.addEventListener('click', () => {
-    terminal.innerHTML = '';
-});
-
-function addSerialLog(text) {
-    const p = document.createElement('p');
-    if (text.includes('[ALARMA]') || text.includes('fallo')) p.className = 'err-msg';
-    else if (text.includes('[REBUILD]') || text.includes('sincronizacion')) p.className = 'warn-msg';
-    else if (text.includes('[SISTEMA]') || text.includes('DATA:')) p.className = 'sys-msg';
-    
-    p.innerText = text;
-    terminal.appendChild(p);
-    terminal.scrollTop = terminal.scrollHeight;
-}
+ws.onopen = () => appendTerminal('[SISTEMA] Conectado al servidor WebSocket.', 'sys-msg');
 
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
-    // 1. Mostrar todo en el Monitor Serial en Vivo
     if (data.type === 'raw_serial') {
-        addSerialLog(`[${data.timestamp}] ${data.line}`);
-    }
-
-    // 2. Procesar Telemetría y Tabla Excel
-    if (data.type === 'telemetry') {
-        // Actualizar métricas principales
-        document.getElementById('temp').innerText = `${data.temp.toFixed(1)} °C`;
-        document.getElementById('hum').innerText = `${data.hum.toFixed(0)} %`;
-        document.getElementById('ram').innerText = `${data.ram} B`;
-
-        // Estado de cada SD
-        const elSdA = document.getElementById('sdA');
-        const elSdB = document.getElementById('sdB');
-
-        elSdA.innerText = data.sdA ? 'OPERATIVA (ESPEJO)' : 'FALLA / EXTRAÍDA';
-        elSdA.className = `status-badge ${data.sdA ? 'status-ok' : 'status-fail'}`;
-
-        elSdB.innerText = data.sdB ? 'OPERATIVA (ESPEJO)' : 'FALLA / EXTRAÍDA';
-        elSdB.className = `status-badge ${data.sdB ? 'status-ok' : 'status-fail'}`;
-
-        // Banner Global RAID 1
-        const raidBanner = document.getElementById('raidBanner');
-        const raidStatus = document.getElementById('raidStatus');
-
-        if (data.sdA && data.sdB) {
-            raidStatus.innerText = 'SALUDABLE (RAID 1 OK)';
-            raidStatus.style.color = '#34d399';
-            raidBanner.style.borderColor = '#059669';
-        } else if (data.sdA || data.sdB) {
-            raidStatus.innerText = 'MODO DEGRADADO (TOLERANTE A FALLOS)';
-            raidStatus.style.color = '#fbbf24';
-            raidBanner.style.borderColor = '#d97706';
-        } else {
-            raidStatus.innerText = 'CRÍTICO - SIN ALMACENAMIENTO';
-            raidStatus.style.color = '#f87171';
-            raidBanner.style.borderColor = '#dc2626';
-        }
-
-        // Gráfica en tiempo real
-        if (chart.data.labels.length >= 15) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-            chart.data.datasets[1].data.shift();
-        }
-
-        chart.data.labels.push(data.timestamp);
-        chart.data.datasets[0].data.push(data.temp);
-        chart.data.datasets[1].data.push(data.hum);
-        chart.update();
-
-        // Agregar fila a la tabla virtual del Excel (datalog.csv)
-        if (isFirstRow) {
-            excelTableBody.innerHTML = '';
-            isFirstRow = false;
-        }
-
-        const tr = document.createElement('tr');
-        const raidMirrorTag = (data.sdA && data.sdB) 
-            ? '<span class="tag-ok">✔ Guardado en SD-A y SD-B</span>' 
-            : '<span class="tag-deg">⚠ Guardado solo en tarjeta activa</span>';
-
-        tr.innerHTML = `
-            <td>${data.ms}</td>
-            <td><strong>#${data.seq}</strong></td>
-            <td>${data.temp.toFixed(1)} °C</td>
-            <td>${data.hum.toFixed(0)} %</td>
-            <td>${raidMirrorTag}</td>
-        `;
-
-        // Insertar siempre al principio para ver el dato más reciente arriba
-        excelTableBody.insertBefore(tr, excelTableBody.firstChild);
-
-        // Limitar a máximo 20 filas en pantalla
-        if (excelTableBody.children.length > 20) {
-            excelTableBody.removeChild(excelTableBody.lastChild);
-        }
+        let cssClass = '';
+        if (data.line.includes('ERROR') || data.line.includes('FAIL')) cssClass = 'err-msg';
+        else if (data.line.includes('WARN')) cssClass = 'warn-msg';
+        else if (data.line.includes('INIT') || data.line.includes('OK')) cssClass = 'sys-msg';
+        appendTerminal(`[${data.timestamp}] ${data.line}`, cssClass);
+    } 
+    else if (data.type === 'telemetry') {
+        updateDashboard(data);
     }
 };
+
+function updateDashboard(data) {
+    tempEl.textContent = `${data.temp.toFixed(1)} °C`;
+    humEl.textContent = `${data.hum.toFixed(1)} %`;
+    ramEl.textContent = `${data.ram} B`;
+
+    updateBadge(sdAEl, data.sdA, "UNIDAD ACTIVA (SD-A)", "DESCONECTADA");
+    updateBadge(sdBEl, data.sdB, "ESPEJO OK (SD-B)", "DESCONECTADA");
+
+    if (data.sdA && data.sdB) {
+        raidStatusEl.textContent = "ÓPTIMO (ESPEJO SINCRONIZADO)";
+        raidBanner.style.borderLeftColor = "var(--ok)";
+    } else if (data.sdA || data.sdB) {
+        raidStatusEl.textContent = "MODO DEGRADADO (UNA UNIDAD ACTIVA)";
+        raidBanner.style.borderLeftColor = "var(--accent)";
+    } else {
+        raidStatusEl.textContent = "CRÍTICO (SIN ALMACENAMIENTO)";
+        raidBanner.style.borderLeftColor = "var(--fail)";
+    }
+
+    if (realtimeChart.data.labels.length > 20) {
+        realtimeChart.data.labels.shift();
+        realtimeChart.data.datasets[0].data.shift();
+        realtimeChart.data.datasets[1].data.shift();
+    }
+    realtimeChart.data.labels.push(data.timestamp);
+    realtimeChart.data.datasets[0].data.push(data.temp);
+    realtimeChart.data.datasets[1].data.push(data.hum);
+    realtimeChart.update('none');
+
+    // Llenar tabla SD-A solo si está activa (true)
+    if (data.sdA && tableA) {
+        if (firstA) { tableA.innerHTML = ''; firstA = false; }
+        const rowA = document.createElement('tr');
+        rowA.innerHTML = `<td>${data.ms}</td><td>${data.seq}</td><td>${data.temp.toFixed(1)}</td><td>${data.hum.toFixed(1)}</td>`;
+        tableA.prepend(rowA);
+    }
+
+    // Llenar tabla SD-B solo si está activa (true)
+    if (data.sdB && tableB) {
+        if (firstB) { tableB.innerHTML = ''; firstB = false; }
+        const rowB = document.createElement('tr');
+        rowB.innerHTML = `<td>${data.ms}</td><td>${data.seq}</td><td>${data.temp.toFixed(1)}</td><td>${data.hum.toFixed(1)}</td>`;
+        tableB.prepend(rowB);
+    }
+}
+
+function updateBadge(element, isConnected, okText, failText) {
+    if (!element) return;
+    if (isConnected) {
+        element.textContent = okText;
+        element.className = "status-badge status-ok";
+    } else {
+        element.textContent = failText;
+        element.className = "status-badge status-fail";
+    }
+}
+
+function appendTerminal(text, className = '') {
+    const p = document.createElement('p');
+    if (className) p.className = className;
+    p.textContent = text;
+    serialTerminal.appendChild(p);
+    serialTerminal.scrollTop = serialTerminal.scrollHeight;
+}
+
+clearSerialBtn.addEventListener('click', () => {
+    serialTerminal.innerHTML = '<p class="sys-msg">[SISTEMA] Terminal limpiada.</p>';
+});

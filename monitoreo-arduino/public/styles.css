@@ -1,230 +1,343 @@
 :root {
-    --bg: #161715;
-    --panel: #1d1e1b;
-    --panel-2: #242520;
-    --line: #34352f;
-    --text: #dedacf;
-    --muted: #8d8a7e;
-    --accent: #d9a441;
-    --rust: #d3694a;
-    --teal: #78aaa0;
-    --olive: #b4ad62;
-    --ok: #86b26f;
-    --fail: #cf5a47;
-    --mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
-    --sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    /* Paleta Industrial Pro / Dark Tactical */
+    --bg: #0e1117;
+    --panel: #161b22;
+    --panel-2: #21262d;
+    --line: #30363d;
+    --line-subtle: #21262d;
+    
+    --text: #c9d1d9;
+    --text-bright: #f0f6fc;
+    --muted: #8b949e;
+    
+    /* Acentos de estado de alta legibilidad */
+    --accent: #e3b341;       /* Alerta / Warning */
+    --rust: #f85149;         /* Crítico / Temperatura */
+    --teal: #38bdf8;         /* Humedad / Info */
+    --olive: #d29922;        /* RAM / CPU */
+    --ok: #3fb950;           /* Normal / Sincronizado */
+    --fail: #f85149;         /* Error / Desconectado */
+    
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--sans); }
+*, *::before, *::after { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
 
 body {
     background-color: var(--bg);
     color: var(--text);
-    padding: 28px 32px;
-    max-width: 1400px;
+    padding: 24px;
+    max-width: 1440px;
     margin: 0 auto;
-    line-height: 1.45;
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Encabezado */
+/* ==========================================================================
+   ENCABEZADO TÉCNICO
+   ========================================================================== */
 header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 26px;
-    border-bottom: 2px solid var(--text);
-    padding-bottom: 14px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
 }
+
 header h1 {
-    font-size: 1.7rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: var(--text);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
+
 header h1 span {
     font-family: var(--mono);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--accent);
+    background: rgba(227, 179, 65, 0.1);
+    border: 1px solid rgba(227, 179, 65, 0.25);
+    padding: 2px 6px;
+    border-radius: 3px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: normal;
-    margin-left: 10px;
+    letter-spacing: 0.5px;
 }
-header p { color: var(--muted); font-size: 0.9rem; margin-top: 5px; }
 
-/* Banner de RAID */
+header p { 
+    color: var(--muted); 
+    font-size: 0.825rem; 
+    font-family: var(--mono);
+}
+
+/* ==========================================================================
+   BANNER ESTADO RAID 1
+   ========================================================================== */
 .raid-banner {
     background: var(--panel);
-    padding: 16px 22px;
-    border-radius: 2px;
-    text-align: left;
-    margin-bottom: 26px;
+    padding: 14px 18px;
+    border-radius: 4px;
+    margin-bottom: 20px;
     border: 1px solid var(--line);
-    border-left: 6px solid var(--accent);
+    border-left: 4px solid var(--ok);
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
-    transition: border-color 0.25s ease;
-}
-.raid-title {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--muted);
-}
-.raid-status {
-    font-family: var(--mono);
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-top: 0;
 }
 
-/* Grilla de métricas */
+.raid-title {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+
+.raid-status {
+    font-family: var(--mono);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-bright);
+}
+
+/* ==========================================================================
+   GRILLA DE MÉTRICAS (Estructura Tabular Continua)
+   ========================================================================== */
 .grid-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 0;
-    margin-bottom: 26px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--line);
     border: 1px solid var(--line);
-    background: var(--panel);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
 }
+
 .card {
-    background: transparent;
-    padding: 16px 18px 18px;
-    border-radius: 0;
-    border: none;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    margin: 0 -1px -1px 0;
-    text-align: left;
+    background: var(--panel);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
+
 .card h3 {
     font-family: var(--mono);
-    font-size: 0.7rem;
-    font-weight: normal;
+    font-size: 0.68rem;
+    font-weight: 500;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
+
 .card .value {
     font-family: var(--mono);
-    font-size: 1.9rem;
+    font-size: 1.6rem;
     font-weight: 600;
-    letter-spacing: -1px;
+    line-height: 1.2;
 }
+
 .temp-val { color: var(--rust); }
 .hum-val { color: var(--teal); }
 .ram-val { color: var(--olive); }
 
+/* Badges de Estado */
 .status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 3px;
     font-family: var(--mono);
-    font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.8px;
-    margin-top: 4px;
-    background: transparent;
-    border: 1px solid currentColor;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    width: fit-content;
 }
-.status-ok { color: var(--ok); background-color: rgba(134, 178, 111, 0.10); }
-.status-fail { color: var(--fail); background-color: rgba(207, 90, 71, 0.10); }
 
-/* Gráfica + monitor serial */
+.status-ok { 
+    color: var(--ok); 
+    background-color: rgba(63, 185, 80, 0.12); 
+    border: 1px solid rgba(63, 185, 80, 0.25); 
+}
+
+.status-fail { 
+    color: var(--fail); 
+    background-color: rgba(248, 81, 73, 0.12); 
+    border: 1px solid rgba(248, 81, 73, 0.25); 
+}
+
+/* ==========================================================================
+   LAYOUT PRINCIPAL (Gráficas + Consola)
+   ========================================================================== */
 .main-layout {
     display: grid;
-    grid-template-columns: 3fr 2fr;
-    gap: 22px;
-    margin-bottom: 26px;
+    grid-template-columns: 1fr 400px;
+    gap: 20px;
+    margin-bottom: 20px;
 }
-@media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
+
+@media (max-width: 1024px) { 
+    .main-layout { grid-template-columns: 1fr; } 
+}
 
 .chart-container, .serial-container, .excel-container {
     background-color: var(--panel);
-    padding: 18px 20px 20px;
-    border-radius: 2px;
+    padding: 16px;
+    border-radius: 4px;
     border: 1px solid var(--line);
-    border-top: 3px solid var(--text);
-}
-.chart-container h2, .serial-header h2, .excel-container h2 {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 16px;
 }
 
-.serial-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
-.serial-header h2 { margin-bottom: 16px; }
-.serial-header button {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--line);
-    padding: 4px 12px;
-    margin-bottom: 16px;
-    border-radius: 2px;
-    cursor: pointer;
+.chart-container h2, .serial-header h2, .excel-container h2 {
     font-family: var(--mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-bright);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: 12px;
 }
-.serial-header button:hover { color: var(--accent); border-color: var(--accent); }
 
-.serial-terminal {
-    background: #0e0f0d;
-    color: #a9c79a;
+/* Corrección de proporción para la gráfica */
+.chart-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 320px !important; /* Altura fija idéntica a la terminal serial */
+}
+
+/* Cabecera del Monitor Serial */
+.serial-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 12px; 
+}
+
+.serial-header h2 {
+    margin-bottom: 0;
+}
+
+.serial-header button {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
     font-family: var(--mono);
-    font-size: 0.82rem;
-    padding: 12px 14px;
-    border-radius: 2px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+}
+
+.serial-header button:hover { 
+    background: var(--line);
+    color: var(--text-bright);
+    border-color: var(--muted); 
+}
+
+/* Terminal TTY industrial */
+.serial-terminal {
+    background: #06090e;
+    color: #7ee787;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    padding: 12px;
+    border-radius: 3px;
     height: 320px;
     overflow-y: auto;
     border: 1px solid var(--line);
 }
-.serial-terminal p { margin-bottom: 3px; line-height: 1.35; font-family: var(--mono); }
+
+.serial-terminal p { 
+    margin-bottom: 2px; 
+    line-height: 1.4; 
+}
+
 .serial-terminal .sys-msg { color: var(--teal); }
 .serial-terminal .warn-msg { color: var(--accent); }
 .serial-terminal .err-msg { color: var(--fail); }
 
-/* Tabla de auditoría */
-.table-wrapper { overflow-x: auto; max-height: 280px; border: 1px solid var(--line); }
-.excel-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+/* ==========================================================================
+   TABLA DE AUDITORÍA CSV / EXCEL
+   ========================================================================== */
+.table-wrapper { 
+    overflow-x: auto; 
+    max-height: 280px; 
+    border: 1px solid var(--line); 
+    border-radius: 3px;
+}
+
+.excel-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    text-align: left; 
+}
+
 .excel-table th {
     background-color: var(--panel-2);
     color: var(--muted);
     font-family: var(--mono);
     font-size: 0.7rem;
-    font-weight: normal;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--text);
-    position: sticky;
-    top: 0;
-}
-.excel-table td {
+    letter-spacing: 0.5px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--line);
-    font-family: var(--mono);
-    font-size: 0.82rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
-.excel-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
-.excel-table tbody tr:hover { background-color: var(--panel-2); }
-.empty-msg { text-align: center; color: var(--muted); font-style: italic; font-family: var(--sans); }
-.tag-ok { color: var(--ok); font-weight: bold; }
-.tag-deg { color: var(--accent); font-weight: bold; }
 
-/* Barra de scroll discreta */
-::-webkit-scrollbar { width: 8px; height: 8px; }
+.excel-table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--line-subtle);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+.excel-table tbody tr:nth-child(even) { 
+    background-color: rgba(255, 255, 255, 0.015); 
+}
+
+.excel-table tbody tr:hover { 
+    background-color: var(--panel-2); 
+}
+
+.empty-msg { 
+    text-align: center; 
+    color: var(--muted); 
+    font-size: 0.8rem;
+    padding: 20px 0;
+}
+
+.tag-ok { color: var(--ok); font-weight: 600; }
+.tag-deg { color: var(--accent); font-weight: 600; }
+
+/* ==========================================================================
+   SCROLLBAR DE INGENIERÍA
+   ========================================================================== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--line); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }

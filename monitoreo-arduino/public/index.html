@@ -33,11 +33,11 @@
             <div id="hum" class="value hum-val">-- %</div>
         </div>
         <div class="card">
-            <h3>Unidad SD-A (CS Pin 10)</h3>
+            <h3>Unidad SD-A (CS Pin 9)</h3>
             <div id="sdA" class="status-badge status-fail">DESCONECTADA</div>
         </div>
         <div class="card">
-            <h3>Unidad SD-B (CS Pin 9)</h3>
+            <h3>Unidad SD-B (CS Pin 8)</h3>
             <div id="sdB" class="status-badge status-fail">DESCONECTADA</div>
         </div>
         <div class="card">
@@ -64,27 +64,59 @@
         </div>
     </div>
 
-    <!-- Visor de Auditoría del Archivo datalog.csv (Excel) -->
-    <div class="excel-container">
-        <h2>Auditoría en Tiempo Real de Archivo CSV (datalog.csv en SD-A & SD-B)</h2>
-        <div class="table-wrapper">
-            <table class="excel-table">
-                <thead>
-                    <tr>
-                        <th>Tiempo (ms)</th>
-                        <th>N° Secuencia (seq)</th>
-                        <th>Temperatura (°C)</th>
-                        <th>Humedad (%)</th>
-                        <th>Estado de Espejo RAID 1</th>
-                    </tr>
-                </thead>
-                <tbody id="excelTableBody">
-                    <tr>
-                        <td colspan="5" class="empty-msg">Esperando registros de escrituras en las tarjetas MicroSD...</td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Paneles de Auditoría Independientes para SD-A y SD-B -->
+    <div class="main-layout" style="grid-template-columns: 1fr 1fr;">
+        
+        <!-- Visor Unidad SD-A -->
+        <div class="excel-container">
+            <div class="serial-header">
+                <h2>Auditoría Unidad SD-A (Primaria)</h2>
+                <a href="/download-sda" target="_blank" style="text-decoration: none;">
+                    <button>Descargar SD-A</button>
+                </a>
+            </div>
+            <div class="table-wrapper">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>Tiempo (ms)</th>
+                            <th>Seq</th>
+                            <th>Temp (°C)</th>
+                            <th>Hum (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableA">
+                        <tr><td colspan="4" class="empty-msg">Esperando registros de SD-A...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <!-- Visor Unidad SD-B -->
+        <div class="excel-container">
+            <div class="serial-header">
+                <h2>Auditoría Unidad SD-B (Espejo)</h2>
+                <a href="/download-sdb" target="_blank" style="text-decoration: none;">
+                    <button>Descargar SD-B</button>
+                </a>
+            </div>
+            <div class="table-wrapper">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>Tiempo (ms)</th>
+                            <th>Seq</th>
+                            <th>Temp (°C)</th>
+                            <th>Hum (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableB">
+                        <tr><td colspan="4" class="empty-msg">Esperando registros de SD-B...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>

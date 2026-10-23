@@ -109,7 +109,7 @@ function broadcast(data) {
     });
 }
 
-const PORT = 3001;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`Servidor de Monitoreo RAID 1 activo en http://localhost:${PORT}`);
 });

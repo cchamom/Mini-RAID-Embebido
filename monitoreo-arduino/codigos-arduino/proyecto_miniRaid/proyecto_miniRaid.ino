@@ -1,7 +1,24 @@
+// Mini-RAID 1 con dos microSD en el bus SPI por hardware + LCD I2C 16x2
+//
+// CONEXIONES:
+//   Modulo A: CS=9  MISO=12  MOSI=11  SCK=13  VCC=5V  GND
+//   Modulo B: CS=8  MISO=12  MOSI=11  SCK=13  VCC=5V  GND
+//   DHT11=5  LED_OK=4  LED_ALARM=3  BUZZER=2
+//   LED SD-A=6  LED SD-B=7  (cada LED con resistencia de 220-330 ohm a GND)
+//   LCD I2C: SDA=A4  SCL=A5  VCC=5V  GND
+//
+// SdFatConfig.h debe tener: #define SPI_DRIVER_SELECT 0
+
 #include <SPI.h>
 #include <SdFat.h>
 #include <DHT.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <avr/wdt.h>
+
+#if SPI_DRIVER_SELECT != 0
+#error "Este codigo necesita SPI_DRIVER_SELECT 0 en SdFat/src/SdFatConfig.h"
+#endif
 
 int freeRam() {
   extern int __heap_start, *__brkval;
@@ -22,11 +39,18 @@ int freeRam() {
 #define DHT_TYPE            DHT11
 #define MISO_PIN            12
 
+#define LCD_ADDR            0x27    // si la pantalla no muestra nada, prueba 0x3F
+#define LCD_COLS            16
+#define LCD_ROWS            2
+
+const uint8_t LED_SD[2]     = { 6, 7 };   // LED de estado de SD-A y SD-B
 const uint8_t CS_PIN[2]     = { 9, 8 };
 const char* NAMES[2]        = { "SD-A", "SD-B" };
 
-SdFat32   sd;
-DHT       dht(DHT_PIN, DHT_TYPE);
+SdFat32           sd;
+DHT               dht(DHT_PIN, DHT_TYPE);
+LiquidCrystal_I2C lcd(LCD_ADDR, LCD_COLS, LCD_ROWS);
+
 bool      ok[2]             = { false, false };
 uint32_t  lastTry[2]        = { 0, 0 };
 uint8_t   probeFails[2]     = { 0, 0 };
@@ -34,6 +58,37 @@ bool      skipProbe[2]      = { false, false };
 
 uint32_t seqNo = 0;
 uint32_t lastSample = 0;
+
+// ---------------- LCD ----------------
+
+// Escribe una linea completa (rellena con espacios para borrar restos sin parpadeo)
+void lcdLine(uint8_t row, const char* txt) {
+  lcd.setCursor(0, row);
+  uint8_t n = 0;
+  while (txt[n] && n < LCD_COLS) lcd.print(txt[n++]);
+  while (n++ < LCD_COLS) lcd.print(' ');
+}
+
+// Linea 2: estado de cada SD y del RAID
+void updateLcdStatus() {
+  uint8_t failed = 0;
+  for (int i = 0; i < N_DRIVES; i++) failed += !ok[i];
+
+  const char* estado = (failed == 0) ? "NORMAL" : (failed < N_DRIVES) ? "DEGRAD" : "FALLA";
+  char l2[LCD_COLS + 1];
+  snprintf(l2, sizeof(l2), "A:%s B:%s %s",
+           ok[0] ? "OK" : "--", ok[1] ? "OK" : "--", estado);
+  lcdLine(1, l2);
+}
+
+// Linea 1: temperatura y humedad
+void updateLcdSensor(const char* tbuf, const char* hbuf) {
+  char l1[LCD_COLS + 1];
+  snprintf(l1, sizeof(l1), "T:%sC  H:%s%%", tbuf, hbuf);
+  lcdLine(0, l1);
+}
+
+// ---------------- SD ----------------
 
 void releaseAllCS() {
   for (int j = 0; j < N_DRIVES; j++) {
@@ -152,12 +207,17 @@ void markFailed(int i) {
     Serial.print(F("LOG:[ALARMA] "));
     Serial.print(NAMES[i]);
     Serial.println(F(" fallo / extraida. Modo DEGRADADO activo."));
+    updateLcdStatus();
   }
 }
 
 bool resync(int bad, int good) {
   Serial.print(F("LOG:[REBUILD] Iniciando sincronizacion hacia "));
   Serial.println(NAMES[bad]);
+
+  char msg[LCD_COLS + 1];
+  snprintf(msg, sizeof(msg), "SYNC -> %s", NAMES[bad]);
+  lcdLine(1, msg);
 
   if (!ensureHeader(bad)) return false;
 
@@ -241,6 +301,7 @@ void tryRecover(int i) {
 
   if (!good) {
     releaseAllCS();
+    updateLcdStatus();   // quita el mensaje SYNC si fallo
     return;
   }
 
@@ -250,12 +311,20 @@ void tryRecover(int i) {
   Serial.print(F("LOG:[RECUPERADO] "));
   Serial.print(NAMES[i]);
   Serial.println(F(" reinsertada y totalmente operativa."));
+  updateLcdStatus();
 }
 
 void updateAlarm() {
   uint8_t failed = 0;
   for (int i = 0; i < N_DRIVES; i++) failed += !ok[i];
   uint32_t t = millis();
+
+  // LED individual de cada SD: fija = operativa, parpadeando = caida
+  for (int i = 0; i < N_DRIVES; i++) {
+    digitalWrite(LED_SD[i], ok[i] ? HIGH : ((t % 500) < 250));
+  }
+
+  // LEDs de estado general del Mini-RAID
   if (failed == 0) {
     digitalWrite(LED_OK, HIGH);
     digitalWrite(LED_ALARM, LOW);
@@ -308,6 +377,8 @@ void sample() {
   Serial.print(ok[1] ? 1 : 0); Serial.print(F(","));
   Serial.println(freeRam());
 
+  updateLcdSensor(tbuf, hbuf);
+  updateLcdStatus();
   updateAlarm();
 }
 
@@ -322,6 +393,13 @@ void setup() {
   pinMode(LED_OK, OUTPUT);
   pinMode(LED_ALARM, OUTPUT);
   pinMode(BUZZER, OUTPUT);
+  for (int i = 0; i < N_DRIVES; i++) pinMode(LED_SD[i], OUTPUT);
+
+  lcd.init();
+  lcd.backlight();
+  Wire.setWireTimeout(3000, true);   // evita que un fallo del I2C congele el sistema
+  lcdLine(0, "Mini-RAID 1");
+  lcdLine(1, "Iniciando...");
 
   pinMode(10, OUTPUT); // SS del Arduino Uno
   releaseAllCS();
@@ -331,6 +409,18 @@ void setup() {
   Serial.print(F("LOG:[RESET] MCUSR="));
   Serial.println(mcusr, BIN);
 
+  // ---- DIAGNOSTICO: respuesta de cada SD (se puede borrar cuando todo funcione) ----
+  for (int i = 0; i < N_DRIVES; i++) {
+    uint8_t r = probeCard(i);
+    bool b = beginDrive(i);
+    Serial.print(F("LOG:[DBG] "));  Serial.print(NAMES[i]);
+    Serial.print(F(" probe=0x"));   Serial.print(r, HEX);
+    Serial.print(F(" begin="));     Serial.print(b);
+    Serial.print(F(" err=0x"));     Serial.println(sd.sdErrorCode(), HEX);
+    releaseAllCS();
+  }
+  // ---------------------------------------------------------------------------------
+
   Serial.println(F("LOG:[SISTEMA] Inicializando Mini-RAID 1..."));
   for (int i = 0; i < N_DRIVES; i++) {
     ok[i] = ensureHeader(i);
@@ -339,6 +429,7 @@ void setup() {
     Serial.print(NAMES[i]);
     Serial.println(ok[i] ? F(": Montada correctamente.") : F(": NO detectada."));
   }
+  updateLcdStatus();
 
   wdt_enable(WDTO_8S);
 }

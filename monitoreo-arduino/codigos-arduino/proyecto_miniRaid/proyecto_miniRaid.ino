@@ -1,14 +1,3 @@
-// Mini-RAID 1 con dos microSD en el bus SPI por hardware + LCD I2C 16x2
-//
-// CONEXIONES:
-//   Modulo A: CS=9  MISO=12  MOSI=11  SCK=13  VCC=5V  GND
-//   Modulo B: CS=8  MISO=12  MOSI=11  SCK=13  VCC=5V  GND
-//   DHT11=5  LED_OK=4  LED_ALARM=3  BUZZER=2
-//   LED SD-A=6  LED SD-B=7  (cada LED con resistencia de 220-330 ohm a GND)
-//   LCD I2C: SDA=A4  SCL=A5  VCC=5V  GND
-//
-// SdFatConfig.h debe tener: #define SPI_DRIVER_SELECT 0
-
 #include <SPI.h>
 #include <SdFat.h>
 #include <DHT.h>
